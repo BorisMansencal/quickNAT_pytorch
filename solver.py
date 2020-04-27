@@ -140,7 +140,7 @@ class Solver(object):
                     index = np.random.choice(len(dataloaders[phase].dataset.X), 3, replace=False)
                     self.logWriter.image_per_epoch(model.predict(dataloaders[phase].dataset.X[index], self.device),
                                                    dataloaders[phase].dataset.y[index], phase, epoch)
-                    self.logWriter.cm_per_epoch(phase, out_arr, y_arr, epoch)
+                    #self.logWriter.cm_per_epoch(phase, out_arr, y_arr, epoch) #BORIS: extremely slow
                     ds_mean = self.logWriter.dice_score_per_epoch(phase, out_arr, y_arr, epoch)
                     if phase == 'val':
                         if ds_mean > self.best_ds_mean:

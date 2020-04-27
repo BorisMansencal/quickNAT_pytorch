@@ -8,6 +8,8 @@ import csv
 import utils.common_utils as common_utils
 import utils.data_utils as du
 
+import utils.preprocessor as preprocessor #BORIS
+
 log = logging.getLogger(__name__)
 
 def dice_confusion_matrix(vol_output, ground_truth, num_classes, no_samples=10, mode='train'):
@@ -96,7 +98,8 @@ def evaluate_dice_score(model_path, num_classes, data_dir, label_dir, volumes_tx
                         prediction_path, data_id, device=0, logWriter=None, mode='eval'):
     log.info("**Starting evaluation. Please check tensorboard for plots if a logWriter is provided in arguments**")
 
-    batch_size = 20
+    #batch_size = 20 #BORIS: does not fit in memory
+    batch_size = 10
 
     with open(volumes_txt_file) as file_handle:
         volumes_to_use = file_handle.read().splitlines()
@@ -153,7 +156,7 @@ def evaluate_dice_score(model_path, num_classes, data_dir, label_dir, volumes_tx
             volume_dice_score = dice_score_perclass(volume_prediction, labelmap.cuda(device), num_classes, mode=mode)
 
             volume_prediction = (volume_prediction.cpu().numpy()).astype('float32')
-            
+
             #Copy header affine
             Mat = np.array([
                 header['srow_x'], 
@@ -161,9 +164,24 @@ def evaluate_dice_score(model_path, num_classes, data_dir, label_dir, volumes_tx
                 header['srow_z'],
                 [0,0,0,1]
             ])
+
+            volume_prediction = np.squeeze(volume_prediction)
+
+            volume_prediction = preprocessor.remap_labels_back(volume_prediction, remap_config) #BORIS
+
+            #BORIS
+            if orientation == "COR":
+                volume_prediction = volume_prediction.transpose((1, 2, 0))
+            elif orientation == "AXI":
+                volume_prediction = volume_prediction.transpose((2, 0, 1))
+
             # Apply original image affine to prediction volume
-            nifti_img = nib.MGHImage(np.squeeze(volume_prediction), Mat, header=header)
-            nib.save(nifti_img, os.path.join(prediction_path, volumes_to_use[vol_idx] + str('.mgz')))
+            #nifti_img = nib.MGHImage(np.squeeze(volume_prediction), Mat, header=header)
+            nifti_img = nib.Nifti1Image(volume_prediction, Mat, header=header)  #BORIS
+            #nib.save(nifti_img, os.path.join(prediction_path, volumes_to_use[vol_idx] + str('.mgz'))) #BORIS
+            outputfilename = os.path.join(prediction_path, os.path.basename(file_path[0]).replace(".nii", "_seg1.nii")) #BORIS
+            nib.save(nifti_img, outputfilename)
+
             if logWriter:
                 logWriter.plot_dice_score('val', 'eval_dice_score', volume_dice_score, volumes_to_use[vol_idx], vol_idx)
 
@@ -328,7 +346,9 @@ def evaluate(coronal_model_path, volumes_txt_file, data_dir, device, prediction_
                     _, volume_prediction, header = _segment_vol(file_path, model, orientation, batch_size,
                                                                 cuda_available,
                                                                 device)
-                                                                
+
+                volume_prediction = preprocessor.remap_labels_back(volume_prediction, remap_config='SLANT') #BORIS
+
                 #Copy header affine
                 Mat = np.array([
                     header['srow_x'], 

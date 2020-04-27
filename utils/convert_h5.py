@@ -52,6 +52,8 @@ def convert_h5(data_dir, label_dir, data_split, train_volumes, test_volumes, f, 
     else:
         raise ValueError('You must either provide the split ratio or a train, train dataset list')
 
+    reduce_slices = False #True  #BORIS
+
     print("Train dataset size: %d, Test dataset size: %d" % (len(train_file_paths), len(test_file_paths)))
     # loading,pre-processing and writing train data
     print("===Train data===")
@@ -59,7 +61,7 @@ def convert_h5(data_dir, label_dir, data_split, train_volumes, test_volumes, f, 
                                                                                      orientation,
                                                                                      remap_config=remap_config,
                                                                                      return_weights=True,
-                                                                                     reduce_slices=True,
+                                                                                     reduce_slices=reduce_slices, #BORIS
                                                                                      remove_black=True)
 
     _write_h5(data_train, label_train, class_weights_train, weights_train, f, mode='train')
@@ -70,7 +72,7 @@ def convert_h5(data_dir, label_dir, data_split, train_volumes, test_volumes, f, 
                                                                                  orientation,
                                                                                  remap_config=remap_config,
                                                                                  return_weights=True,
-                                                                                 reduce_slices=True,
+                                                                                 reduce_slices=reduce_slices, #BORIS
                                                                                  remove_black=True)
 
     _write_h5(data_test, label_test, class_weights_test, weights_test, f, mode='test')

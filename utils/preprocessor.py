@@ -22,7 +22,9 @@ def estimate_weights_mfb(labels):
     class_weights = np.zeros_like(labels)
     unique, counts = np.unique(labels, return_counts=True)
     median_freq = np.median(counts)
-    weights = np.zeros(33)
+#    weights = np.zeros(33) #BORIS
+    weights = np.zeros(133) #BORIS
+    assert(len(weights) >= len(unique)) #BORIS
     for i, label in enumerate(unique):
         class_weights += (median_freq // counts[i]) * np.array(labels == label)
         weights[int(label)] = median_freq // counts[i]
@@ -45,6 +47,8 @@ def remap_labels(labels, remap_config):
         labels[(labels >= 100) & (labels % 2 == 1)] = 211
         label_list = [45, 211, 52, 50, 41, 39, 60, 37, 58, 56, 4, 11, 35, 48, 32, 46, 30, 62, 44, 210, 51, 49, 40, 38,
                       59, 36, 57, 55, 47, 31, 23, 61]
+    elif remap_config == 'SLANT': #BORIS
+        label_list = [4,11,23,30,31,32,35,36,37,38,39,40,41,44,45,47,48,49,50,51,52,55,56,57,58,59,60,61,62,71,72,73,75,76,100,101,102,103,104,105,106,107,108,109,112,113,114,115,116,117,118,119,120,121,122,123,124,125,128,129,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155,156,157,160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175,176,177,178,179,180,181,182,183,184,185,186,187,190,191,192,193,194,195,196,197,198,199,200,201,202,203,204,205,206,207]
     else:
         raise ValueError("Invalid argument value for remap config, only valid options are FS and Neo")
 
@@ -55,6 +59,19 @@ def remap_labels(labels, remap_config):
         label_present[labels == label] = 1
         new_labels = new_labels + (i + 1) * label_present
 
+    return new_labels
+
+def remap_labels_back(labels, remap_config):
+    """
+    Function to remap the label values from [0, num_labels] to original labels
+    """
+    if remap_config == 'SLANT': #BORIS
+        label_list = [4,11,23,30,31,32,35,36,37,38,39,40,41,44,45,47,48,49,50,51,52,55,56,57,58,59,60,61,62,71,72,73,75,76,100,101,102,103,104,105,106,107,108,109,112,113,114,115,116,117,118,119,120,121,122,123,124,125,128,129,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155,156,157,160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175,176,177,178,179,180,181,182,183,184,185,186,187,190,191,192,193,194,195,196,197,198,199,200,201,202,203,204,205,206,207]
+    else:
+        raise ValueError("Invalid argument value for remap config, only valid options is SLANT")
+    new_labels = np.zeros_like(labels)
+    for i, label in enumerate(label_list):
+        new_labels[np.where(labels==(i+1))] = label
     return new_labels
 
 

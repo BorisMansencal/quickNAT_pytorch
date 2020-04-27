@@ -195,6 +195,11 @@ def load_file_paths(data_dir, label_dir, data_id, volumes_txt_file=None):
             [os.path.join(data_dir, vol, 'mri/orig.mgz'), os.path.join(label_dir, vol + '_map.nii.gz')]
             for
             vol in volumes_to_use]
+    elif data_id == "BORIS": #BORIS
+        file_paths = [
+            [os.path.join(data_dir, vol), os.path.join(label_dir, vol.replace('.nii', '_seg.nii'))]
+            for
+            vol in volumes_to_use]
     else:
         raise ValueError("Invalid entry, valid options are MALC, ADNI, CANDI and IBSR")
 
